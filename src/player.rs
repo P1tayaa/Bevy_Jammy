@@ -68,6 +68,7 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 				target_x = LEFT_LANE;
 				slide.is_sliding = true;
 			}
+			slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
 		}
 		if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
 			println!("moving right");
@@ -78,6 +79,7 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 				target_x = RIGHT_LANE;
 				slide.is_sliding = true;
 			}
+			slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
 		}
 		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyW]) {
 			println!("Jump");
@@ -86,7 +88,7 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 			println!("roll");
 		}
 
-		slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
+		// slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
 		let mut direction = slide.target - player_transform.translation;
 		direction.y = 0.;
 		let movement = direction.normalize_or_zero() * MOVE_SPEED * time.delta_seconds();
@@ -100,10 +102,10 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 	}
 }
 
-fn run_if_player_unlocked(mut player_q: Query<&AnimLock, With<Player>>) -> bool {
-	if let Ok(anim_lock) = player_q.get_single() {
-        anim_lock.0 // Access the boolean value inside AnimLock
-    } else {
-        false // Or handle the error case as needed
-    }
-}
+// fn run_if_player_unlocked(mut player_q: Query<&AnimLock, With<Player>>) -> bool {
+// 	if let Ok(anim_lock) = player_q.get_single() {
+//         anim_lock.0 // Access the boolean value inside AnimLock
+//     } else {
+//         false // Or handle the error case as needed
+//     }
+// }
