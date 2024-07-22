@@ -16,7 +16,7 @@ fn spawn_floor(mut commands: Commands,
     // Static physics object with a collision shape
     commands.spawn((
     RigidBody::Static,
-    Collider::cuboid(15., 0.1, 15.),
+    Collider::cuboid(15., 0.5, 15.),
     PbrBundle {
         mesh: meshes.add(Cuboid::new(5., 0.1, 15.)),
         material: materials.add(Color::WHITE),

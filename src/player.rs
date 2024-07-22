@@ -49,6 +49,7 @@ fn spawn_player(mut commands: Commands,
 fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 	mut player_q: Query<(&mut Transform, &mut Sliding), With<Player>>,
 	time: Res<Time>,
+	mut exit: EventWriter<AppExit>,
 	camera_q: Query<&Transform, (With<Camera3d>, Without<Player>)>
 ){
 	for (mut player_transform, mut slide) in player_q.iter_mut() {
@@ -81,11 +82,14 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
 			}
 			slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
 		}
-		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyW]) {
+		if keys.any_pressed([KeyCode::ArrowUp, KeyCode::KeyW, KeyCode::Space]) {
 			println!("Jump");
 		}
 		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
 			println!("roll");
+		}
+		if keys.pressed(KeyCode::Escape) {
+			exit.send(AppExit::Success);
 		}
 
 		// slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
