@@ -14,3 +14,6 @@ fn spawn_camera(mut commands: Commands) {
         ..default()
     });
 }
+
+// lane based movement
+// constant movement

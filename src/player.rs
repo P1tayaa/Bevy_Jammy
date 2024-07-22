@@ -48,22 +48,36 @@ fn spawn_player(mut commands: Commands,
 }
 
 fn player_movement(keys: Res<ButtonInput<KeyCode>>,
-	mut player_query: Query<&mut Transform, With<Player>>
+	mut player_q: Query<&mut Transform, With<Player>>,
+	time: Res<Time>,
+	mut camera_q: Query<&Transform, (With<Camera3d>, Without<Player>)>
 ){
-	let position = player_query.get_single_mut().unwrap();
-	let mut direction: Vec3;
-	if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
-		println!("moving left");
-	}
-	if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
-		println!("moving right");
-	}
-	if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyW]) {
-		println!("Jump");
-	}
-	if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
-		println!("roll");
+	for mut player_transform in player_q.iter_mut() {
+		let cam = match camera_q.get_single() {
+			Ok(c) => c,
+			Err(e) => Err(format!("could not retrive camera during movement")).unwrap()
+		};
+		let mut direction: Vec3 = Vec3::ZERO;
+		if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
+			println!("moving left");
+			direction += cam.left().as_vec3();
+		}
+		if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
+			println!("moving right");
+			direction += cam.right().as_vec3();
+		}
+		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyW]) {
+			println!("Jump");
+			direction += cam.forward().as_vec3();
+		}
+		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
+			println!("roll");
+			direction += cam.back().as_vec3();
+		}
+
+		direction.y = 0.;
+		let movement = direction.normalize_or_zero() * 2. * time.delta_seconds();
+		player_transform.translation += movement;
 	}
 
-	// position.transform = 
 }
