@@ -4,7 +4,8 @@ use bevy::prelude::*;
 mod player;
 mod camera;
 mod world;
-use player::{Player, PlayerPlugin};
+
+use player::PlayerPlugin;
 use camera::CameraPlugin;
 use world::WorldPlugin;
 

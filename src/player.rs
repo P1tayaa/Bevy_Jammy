@@ -1,23 +1,18 @@
 use bevy::prelude::*;
 use avian3d::prelude::*;
-use core::any::*;
 
-static LEFT_LANE: f32 = 5.;
-static MIDDLE_LANE: f32 = 10.;
-static RIGHT_LANE: f32 = 15.; 
+static LEFT_LANE: f32 = -2.5;
+static MIDDLE_LANE: f32 = 0.;
+static RIGHT_LANE: f32 = 2.5; 
+static MOVE_SPEED: f32 = 5.;
 
 #[derive(Component, Debug)]
 pub struct Player;
 
-
-// components
 #[derive(Component, Debug)]
-pub struct Speed {
-	value: i32,
-}
-#[derive(Component, Debug)]
-pub struct Id {
-	id: TypeId,
+pub struct Sliding {
+	is_sliding: bool,
+	target: Vec3,
 }
 
 
@@ -35,6 +30,10 @@ fn spawn_player(mut commands: Commands,
 ){
 	commands.spawn((
 		Player,
+		Sliding {
+			is_sliding: false,
+			target: Vec3::ZERO,
+		},
         RigidBody::Dynamic,
         Collider::cuboid(1.0, 1.0, 1.0),
         AngularVelocity(Vec3::new(2.5, 3.5, 1.5)),
@@ -48,36 +47,55 @@ fn spawn_player(mut commands: Commands,
 }
 
 fn player_movement(keys: Res<ButtonInput<KeyCode>>,
-	mut player_q: Query<&mut Transform, With<Player>>,
+	mut player_q: Query<(&mut Transform, &mut Sliding), With<Player>>,
 	time: Res<Time>,
-	mut camera_q: Query<&Transform, (With<Camera3d>, Without<Player>)>
+	camera_q: Query<&Transform, (With<Camera3d>, Without<Player>)>
 ){
-	for mut player_transform in player_q.iter_mut() {
+	for (mut player_transform, mut slide) in player_q.iter_mut() {
 		let cam = match camera_q.get_single() {
 			Ok(c) => c,
-			Err(e) => Err(format!("could not retrive camera during movement")).unwrap()
+			Err(e) => Err(format!("could not retrive camera during movement, err: {}", e)).unwrap()
 		};
-		let mut direction: Vec3 = Vec3::ZERO;
+		let current_x = player_transform.translation.x;
+		let mut target_x = 0.;
+
 		if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
 			println!("moving left");
-			direction += cam.left().as_vec3();
+			if current_x > MIDDLE_LANE {
+				target_x = MIDDLE_LANE;
+				slide.is_sliding = true;
+			} else if current_x > LEFT_LANE {
+				target_x = LEFT_LANE;
+				slide.is_sliding = true;
+			}
 		}
 		if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
 			println!("moving right");
-			direction += cam.right().as_vec3();
+			if current_x < MIDDLE_LANE {
+				target_x = MIDDLE_LANE;
+				slide.is_sliding = true;
+			} else if current_x < RIGHT_LANE {
+				target_x = RIGHT_LANE;
+				slide.is_sliding = true;
+			}
 		}
 		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyW]) {
 			println!("Jump");
-			direction += cam.forward().as_vec3();
 		}
 		if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
 			println!("roll");
-			direction += cam.back().as_vec3();
 		}
 
+		slide.target = Vec3::new(target_x, player_transform.translation.y, player_transform.translation.z);
+		let mut direction = slide.target - player_transform.translation;
 		direction.y = 0.;
-		let movement = direction.normalize_or_zero() * 2. * time.delta_seconds();
-		player_transform.translation += movement;
+		let movement = direction.normalize_or_zero() * MOVE_SPEED * time.delta_seconds();
+		if direction.length() < movement.length() {
+            player_transform.translation = slide.target;
+            slide.is_sliding = false;  // Stop sliding once the target is reached
+			println!("stopped sliding");
+        } else {
+            player_transform.translation += movement;
+        }
 	}
-
 }
