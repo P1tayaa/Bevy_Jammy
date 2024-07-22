@@ -99,3 +99,11 @@ fn player_movement(keys: Res<ButtonInput<KeyCode>>,
         }
 	}
 }
+
+fn run_if_player_unlocked(mut player_q: Query<&AnimLock, With<Player>>) -> bool {
+	if let Ok(anim_lock) = player_q.get_single() {
+        anim_lock.0 // Access the boolean value inside AnimLock
+    } else {
+        false // Or handle the error case as needed
+    }
+}
